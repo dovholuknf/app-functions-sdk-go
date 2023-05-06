@@ -19,6 +19,8 @@ package webserver
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/openziti/sdk-golang/ziti"
+	"net"
 	"net/http"
 	"time"
 
@@ -133,6 +135,42 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 	}
 	addr := fmt.Sprintf("%s:%d", bindAddress, config.Service.Port)
 
+	var ln net.Listener
+	var err error
+	switch config.Service.ListenMode {
+	case "zerotrust":
+		lc.Info("using zerotrust - look at you go")
+
+		idfile := config.Service.ListenOptions["IdentityFile"]
+		identityConfig, err := ziti.NewConfigFromFile(idfile)
+		if err != nil {
+			lc.Errorf("could not load configuration file: %v", err)
+		}
+
+		ctx, err := ziti.NewContext(identityConfig)
+		if err != nil {
+			lc.Errorf("could not load context: %v", err)
+		}
+
+		if err = ctx.Authenticate(); err != nil {
+			lc.Errorf("could not authenticate: %v", err)
+		}
+		serviceName := config.Service.ListenOptions["OpenZitiServiceName"]
+		ln, err = ctx.Listen(serviceName)
+
+		if err != nil {
+			lc.Errorf("could not bind service %s: %v", serviceName, err)
+		}
+
+	case "http":
+	default:
+		lc.Warn("using ListenMode 'http'")
+		ln, err = net.Listen("tcp", addr)
+	}
+	if err != nil {
+		panic("some error here")
+	}
+
 	svr := &http.Server{
 		Addr:              addr,
 		Handler:           http.TimeoutHandler(webserver.router, serviceTimeout, "Request timed out"),
@@ -179,7 +217,7 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 		errChannel <- svr.ListenAndServeTLS("", "")
 	} else {
 		lc.Infof("Starting HTTP Web Server on address %s", addr)
-		errChannel <- svr.ListenAndServe()
+		errChannel <- svr.Serve(ln)
 	}
 }
 
