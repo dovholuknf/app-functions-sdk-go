@@ -137,7 +137,7 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 
 	var ln net.Listener
 	var err error
-	switch config.Service.ListenMode {
+	switch config.Service.ListenOptions["ListenMode"] {
 	case "zerotrust":
 		lc.Info("using zerotrust - look at you go")
 
