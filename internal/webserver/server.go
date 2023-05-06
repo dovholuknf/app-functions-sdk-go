@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"time"
 
+	gmbc "github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/container"
 	"github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/handlers"
 
 	"github.com/edgexfoundry/app-functions-sdk-go/v3/internal"
@@ -137,25 +138,25 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 
 	var ln net.Listener
 	var err error
-	switch config.Service.ListenOptions["ListenMode"] {
+	switch config.Service.SecurityOptions["ListenMode"] {
 	case "zerotrust":
 		lc.Info("using zerotrust - look at you go")
 
-		idfile := config.Service.ListenOptions["IdentityFile"]
-		identityConfig, err := ziti.NewConfigFromFile(idfile)
-		if err != nil {
-			lc.Errorf("could not load configuration file: %v", err)
+		openZitiRootUrl := "https://" + config.Service.SecurityOptions["OpenZitiController"]
+
+		secretProvider := gmbc.SecretProviderExtFrom(webserver.dic.Get)
+		jwt, errJwt := secretProvider.GetSelfJWT()
+		if errJwt != nil {
+			lc.Errorf("could not load jwt: %v", err)
 		}
 
-		ctx, err := ziti.NewContext(identityConfig)
-		if err != nil {
-			lc.Errorf("could not load context: %v", err)
+		caPool, caErr := ziti.GetControllerWellKnownCaPool("https://" + config.Service.SecurityOptions["OpenZitiController"])
+		if caErr != nil {
+			panic(caErr)
 		}
+		ctx := handlers.AuthToOpenZiti(openZitiRootUrl, jwt, caPool)
 
-		if err = ctx.Authenticate(); err != nil {
-			lc.Errorf("could not authenticate: %v", err)
-		}
-		serviceName := config.Service.ListenOptions["OpenZitiServiceName"]
+		serviceName := config.Service.SecurityOptions["OpenZitiServiceName"]
 		ln, err = ctx.Listen(serviceName)
 
 		if err != nil {
