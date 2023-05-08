@@ -19,9 +19,12 @@ package webserver
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/openziti/sdk-golang/ziti"
+	"net"
 	"net/http"
 	"time"
 
+	gmbc "github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/container"
 	"github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/handlers"
 
 	"github.com/edgexfoundry/app-functions-sdk-go/v3/internal"
@@ -133,6 +136,42 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 	}
 	addr := fmt.Sprintf("%s:%d", bindAddress, config.Service.Port)
 
+	var ln net.Listener
+	var err error
+	switch config.Service.SecurityOptions["ListenMode"] {
+	case "zerotrust":
+		lc.Info("using zerotrust - look at you go")
+
+		openZitiRootUrl := "https://" + config.Service.SecurityOptions["OpenZitiController"]
+
+		secretProvider := gmbc.SecretProviderExtFrom(webserver.dic.Get)
+		jwt, errJwt := secretProvider.GetSelfJWT()
+		if errJwt != nil {
+			lc.Errorf("could not load jwt: %v", err)
+		}
+
+		caPool, caErr := ziti.GetControllerWellKnownCaPool(openZitiRootUrl)
+		if caErr != nil {
+			panic(caErr)
+		}
+		ctx := handlers.AuthToOpenZiti(openZitiRootUrl, jwt, caPool)
+
+		serviceName := config.Service.SecurityOptions["OpenZitiServiceName"]
+		ln, err = ctx.Listen(serviceName)
+
+		if err != nil {
+			lc.Errorf("could not bind service %s: %v", serviceName, err)
+		}
+
+	case "http":
+	default:
+		lc.Warn("using ListenMode 'http'")
+		ln, err = net.Listen("tcp", addr)
+	}
+	if err != nil {
+		panic("some error here")
+	}
+
 	svr := &http.Server{
 		Addr:              addr,
 		Handler:           http.TimeoutHandler(webserver.router, serviceTimeout, "Request timed out"),
@@ -179,7 +218,7 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 		errChannel <- svr.ListenAndServeTLS("", "")
 	} else {
 		lc.Infof("Starting HTTP Web Server on address %s", addr)
-		errChannel <- svr.ListenAndServe()
+		errChannel <- svr.Serve(ln)
 	}
 }
 
