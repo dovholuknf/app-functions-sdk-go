@@ -150,7 +150,7 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 			lc.Errorf("could not load jwt: %v", err)
 		}
 
-		caPool, caErr := ziti.GetControllerWellKnownCaPool("https://" + config.Service.SecurityOptions["OpenZitiController"])
+		caPool, caErr := ziti.GetControllerWellKnownCaPool(openZitiRootUrl)
 		if caErr != nil {
 			panic(caErr)
 		}
