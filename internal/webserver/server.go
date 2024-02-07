@@ -19,7 +19,11 @@ package webserver
 import (
 	"crypto/tls"
 	"fmt"
+	edge_apis "github.com/openziti/sdk-golang/edge-apis"
+	"github.com/openziti/sdk-golang/ziti"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/edgexfoundry/app-functions-sdk-go/v3/internal"
@@ -27,6 +31,7 @@ import (
 	sdkCommon "github.com/edgexfoundry/app-functions-sdk-go/v3/internal/common"
 	"github.com/edgexfoundry/app-functions-sdk-go/v3/pkg/interfaces"
 	bootstrapContainer "github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/container"
+	c2 "github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/container"
 	"github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/controller"
 	bootstrapHandlers "github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/handlers"
 	"github.com/edgexfoundry/go-mod-bootstrap/v3/bootstrap/utils"
@@ -126,6 +131,76 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 		ReadHeaderTimeout: serviceTimeout,
 	}
 
+	var ln net.Listener
+	var err error
+	lc.Warn("===============================START   ")
+	lc.Warn("===============================START   ")
+	lc.Warn("===============================START   ")
+	for _, elem := range webserver.config.Service.SecurityOptions {
+		lc.Warn(fmt.Sprintf("%v, ", elem))
+	}
+	lc.Warn("===============================STARTEND")
+	lc.Warn("===============================STARTEND")
+	lc.Warn("===============================STARTEND")
+	mode := config.Service.SecurityOptions["Mode"]
+	switch mode {
+	case "zerotrust":
+		//secretProvider := fakeSecretProvider() //container.SecretProviderExtFrom(dic.Get)
+		secretProvider := c2.SecretProviderExtFrom(webserver.dic.Get)
+		var zitiCtx ziti.Context
+		var ctxErr error
+		if secretProvider != nil {
+			jwt, jwtErr := secretProvider.GetSelfJWT()
+			if jwtErr != nil {
+				lc.Errorf("could not load jwt: %v", jwtErr)
+			}
+			lc.Info("using zerotrust - look at you go: " + jwt)
+			openZitiRootUrl := "https://" + config.Service.SecurityOptions["OpenZitiController"]
+			caPool, caErr := ziti.GetControllerWellKnownCaPool(openZitiRootUrl)
+			if caErr != nil {
+				panic(caErr)
+			}
+
+			credentials := edge_apis.NewJwtCredentials(jwt)
+			credentials.CaPool = caPool
+
+			cfg := &ziti.Config{
+				ZtAPI:       openZitiRootUrl + "/edge/client/v1",
+				Credentials: credentials,
+			}
+			cfg.ConfigTypes = append(cfg.ConfigTypes, "all")
+
+			zitiCtx, ctxErr = ziti.NewContext(cfg)
+			if ctxErr != nil {
+				panic(ctxErr)
+			}
+		} else {
+			ozIdFile := "fixthis" //bootstrapConfig.Service.SecurityOptions["OpenZitiIdentityFile"]
+			if strings.TrimSpace(ozIdFile) == "" {
+				panic("here?")
+			} else {
+				zitiCtx, ctxErr = ziti.LoadContext(ozIdFile)
+				if ctxErr != nil {
+					panic(ctxErr)
+				}
+			}
+
+			ziti.DefaultCollection.Add(zitiCtx)
+		}
+
+		serviceName := "fixthis3" //bootstrapConfig.Service.SecurityOptions["OpenZitiServiceName"]
+		ln, err = zitiCtx.Listen(serviceName)
+		if err != nil {
+			panic("could not bind service " + serviceName + ": " + err.Error())
+		}
+
+		//fixthis4 zc.c = &zitiCtx
+	case "http":
+	default:
+		lc.Warnf("using ListenMode1 'http' at %s", addr)
+		ln, err = net.Listen("tcp", addr)
+	}
+
 	if config.HttpServer.Protocol == "https" {
 		provider := bootstrapContainer.SecretProviderFrom(webserver.dic.Get)
 		httpsSecretData, err := provider.GetSecret(config.HttpServer.SecretName)
@@ -163,10 +238,12 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 
 		// ListenAndServeTLS takes filenames for the certificate and key but the raw data is coming from Vault
 		// empty strings will make the server use the certificate and key from tls.Config{}
-		errChannel <- svr.ListenAndServeTLS("", "")
+		//errChannel <- svr.ListenAndServeTLS("", "")
+		errChannel <- svr.ServeTLS(ln, "", "")
 	} else {
 		lc.Infof("Starting HTTP Web Server on address %s", addr)
-		errChannel <- svr.ListenAndServe()
+		//errChannel <- svr.ListenAndServe()
+		errChannel <- svr.Serve(ln)
 	}
 }
 
@@ -182,4 +259,15 @@ func (webserver *WebServer) generateTLSConfig(httpsCert, httpsKey []byte) (*tls.
 	}
 
 	return config, nil
+}
+
+type Fixstruct struct {
+}
+
+func (f *Fixstruct) somefunc() {
+
+}
+
+func fakeSecretProvider() interface{} {
+	return nil
 }
