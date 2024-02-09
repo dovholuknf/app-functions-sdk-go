@@ -23,7 +23,6 @@ import (
 	"github.com/openziti/sdk-golang/ziti"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/edgexfoundry/app-functions-sdk-go/v3/internal"
@@ -133,74 +132,54 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 
 	var ln net.Listener
 	var err error
-	lc.Warn("===============================START   ")
-	lc.Warn("===============================START   ")
-	lc.Warn("===============================START   ")
-	for _, elem := range webserver.config.Service.SecurityOptions {
-		lc.Warn(fmt.Sprintf("%v, ", elem))
-	}
-	lc.Warn("===============================STARTEND")
-	lc.Warn("===============================STARTEND")
-	lc.Warn("===============================STARTEND")
 	mode := config.Service.SecurityOptions["Mode"]
 	switch mode {
 	case "zerotrust":
-		//secretProvider := fakeSecretProvider() //container.SecretProviderExtFrom(dic.Get)
 		secretProvider := c2.SecretProviderExtFrom(webserver.dic.Get)
-		var zitiCtx ziti.Context
-		var ctxErr error
-		if secretProvider != nil {
-			jwt, jwtErr := secretProvider.GetSelfJWT()
-			if jwtErr != nil {
-				lc.Errorf("could not load jwt: %v", jwtErr)
-			}
-			lc.Info("using zerotrust - look at you go: " + jwt)
-			openZitiRootUrl := "https://" + config.Service.SecurityOptions["OpenZitiController"]
-			caPool, caErr := ziti.GetControllerWellKnownCaPool(openZitiRootUrl)
-			if caErr != nil {
-				panic(caErr)
-			}
-
-			credentials := edge_apis.NewJwtCredentials(jwt)
-			credentials.CaPool = caPool
-
-			cfg := &ziti.Config{
-				ZtAPI:       openZitiRootUrl + "/edge/client/v1",
-				Credentials: credentials,
-			}
-			cfg.ConfigTypes = append(cfg.ConfigTypes, "all")
-
-			zitiCtx, ctxErr = ziti.NewContext(cfg)
-			if ctxErr != nil {
-				panic(ctxErr)
-			}
-		} else {
-			ozIdFile := "fixthis" //bootstrapConfig.Service.SecurityOptions["OpenZitiIdentityFile"]
-			if strings.TrimSpace(ozIdFile) == "" {
-				panic("here?")
-			} else {
-				zitiCtx, ctxErr = ziti.LoadContext(ozIdFile)
-				if ctxErr != nil {
-					panic(ctxErr)
-				}
-			}
-
-			ziti.DefaultCollection.Add(zitiCtx)
+		if secretProvider == nil {
+			panic("could not establish trust - cannot obtain secret provider")
+		}
+		jwt, jwtErr := secretProvider.GetSelfJWT()
+		if jwtErr != nil {
+			lc.Errorf("could not load jwt: %v", jwtErr)
+			panic("could not establish trust - no jwt")
 		}
 
-		serviceName := "fixthis3" //bootstrapConfig.Service.SecurityOptions["OpenZitiServiceName"]
+		openZitiRootUrl := "https://" + config.Service.SecurityOptions["OpenZitiController"]
+		caPool, caErr := ziti.GetControllerWellKnownCaPool(openZitiRootUrl)
+		if caErr != nil {
+			lc.Errorf("error retreiving ca pool: %v", caErr)
+			panic("could not establish trust - cannot establish trust")
+		}
+
+		credentials := edge_apis.NewJwtCredentials(jwt)
+		credentials.CaPool = caPool
+
+		cfg := &ziti.Config{
+			ZtAPI:       openZitiRootUrl + "/edge/client/v1",
+			Credentials: credentials,
+		}
+		cfg.ConfigTypes = append(cfg.ConfigTypes, "all")
+
+		zitiCtx, ctxErr := ziti.NewContext(cfg)
+		if ctxErr != nil {
+			panic(ctxErr)
+		}
+
+		serviceName := config.Service.SecurityOptions["OpenZitiServiceName"]
+
+		addr = "OpenZiti service " + serviceName
 		ln, err = zitiCtx.Listen(serviceName)
 		if err != nil {
 			panic("could not bind service " + serviceName + ": " + err.Error())
 		}
 
-		//fixthis4 zc.c = &zitiCtx
 	case "http":
 	default:
-		lc.Warnf("using ListenMode1 'http' at %s", addr)
 		ln, err = net.Listen("tcp", addr)
 	}
 
+	lc.Infof("using ListenMode '%s' at %s", mode, addr)
 	if config.HttpServer.Protocol == "https" {
 		provider := bootstrapContainer.SecretProviderFrom(webserver.dic.Get)
 		httpsSecretData, err := provider.GetSecret(config.HttpServer.SecretName)
@@ -212,14 +191,14 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 
 		httpsCert, ok := httpsSecretData[config.HttpServer.HTTPSCertName]
 		if !ok {
-			lc.Errorf("unable to find HTTPS Cert in Secret Data as %s. Check configuration", config.HttpServer.HTTPSCertName, err)
+			lc.Errorf("unable to find HTTPS Cert in Secret Data as %s. Check configuration. %v", config.HttpServer.HTTPSCertName, err)
 			errChannel <- err
 			return
 		}
 
 		httpsKey, ok := httpsSecretData[config.HttpServer.HTTPSKeyName]
 		if !ok {
-			lc.Errorf("unable to find HTTPS Key in Secret Data as %s. Check configuration.", config.HttpServer.HTTPSKeyName, err)
+			lc.Errorf("unable to find HTTPS Key in Secret Data as %s. Check configuration. %v", config.HttpServer.HTTPSKeyName, err)
 			errChannel <- err
 			return
 		}
@@ -227,7 +206,7 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 		// ListenAndServeTLS below takes filenames for the certificate and key but the raw data is coming from Vault, so must generate the tlsConfig from raw data first.
 		tlsConfig, err := webserver.generateTLSConfig([]byte(httpsCert), []byte(httpsKey))
 		if err != nil {
-			lc.Errorf("unable to generate a TLS configuration.", err)
+			lc.Errorf("unable to generate a TLS configuration. %v", err)
 			errChannel <- err
 			return
 		}

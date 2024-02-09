@@ -84,8 +84,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/diegoholiveira/jsonlogic/v3 v3.4.0 h1:TN++nRmEMA5UHzKl8MJ1kbF5SSzWtKHE0PZ6ITbJeH4=
 github.com/diegoholiveira/jsonlogic/v3 v3.4.0/go.mod h1:9oE8z9G+0OMxOoLHF3fhek3KuqD5CBqM0B6XFL08MSg=
-github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240201185813-2ccf2b8516a0 h1:osbjDwM+mxL/jJnX0ePuS+L4MuSkjJ5n/0XgpcQtABI=
-github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240201185813-2ccf2b8516a0/go.mod h1:9dPFjDeKH8kBI+n9J7p/1+TUnxey3BGbo2NRDZ4mJ24=
+github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240207152706-4e9bafdaa7ef h1:9DOstZoD1gb/OI2LtHoiTA5uZ1wd0gjAY4fEC5cOOTg=
+github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240207152706-4e9bafdaa7ef/go.mod h1:SCr/VRqHHvf9X7GFd0g/MymVGmqVWd59g9+j0VMgVtQ=
 github.com/dovholuknf/go-mod-core-contracts/v3 v3.0.0-20240202194122-2e273c4e8201 h1:z+XjU/5O1gsBo8Bmlr7D/zUetglxerhMukVmfmK5toU=
 github.com/dovholuknf/go-mod-core-contracts/v3 v3.0.0-20240202194122-2e273c4e8201/go.mod h1:mTP3luRqJKsudxayDmlkT+oWQATJ9L020pdQ8kCzmgM=
 github.com/eclipse/paho.mqtt.golang v1.4.3 h1:2kwcUGn8seMUfWndX0hGbvH8r7crgcJguQNCyp70xik=

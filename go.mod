@@ -14,6 +14,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/labstack/echo/v4 v4.11.4
+	github.com/openziti/sdk-golang v0.22.21
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/stretchr/testify v1.8.4
 )
@@ -96,7 +97,6 @@ require (
 	github.com/openziti/foundation/v2 v2.0.36 // indirect
 	github.com/openziti/identity v1.0.69 // indirect
 	github.com/openziti/metrics v1.2.42 // indirect
-	github.com/openziti/sdk-golang v0.22.21 // indirect
 	github.com/openziti/secretstream v0.1.16 // indirect
 	github.com/openziti/transport/v2 v2.0.121 // indirect
 	github.com/orcaman/concurrent-map/v2 v2.0.1 // indirect
@@ -143,6 +143,6 @@ require (
 	nhooyr.io/websocket v1.8.10 // indirect
 )
 
-replace github.com/edgexfoundry/go-mod-bootstrap/v3 => github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240201185813-2ccf2b8516a0
+replace github.com/edgexfoundry/go-mod-bootstrap/v3 => github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240207152706-4e9bafdaa7ef
 
 replace github.com/edgexfoundry/go-mod-core-contracts/v3 => github.com/dovholuknf/go-mod-core-contracts/v3 v3.0.0-20240202194122-2e273c4e8201
