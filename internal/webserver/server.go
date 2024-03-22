@@ -127,6 +127,21 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 	}
 	addr := fmt.Sprintf("%s:%d", bindAddress, config.Service.Port)
 
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
+	fmt.Println("dddddddd")
 	var ln net.Listener
 	var err error
 	listenMode := strings.ToLower(config.Service.SecurityOptions[bscfg.SecurityModeKey])
