@@ -104,17 +104,27 @@ func (webserver *WebServer) SetupTriggerRoute(path string, handlerForTrigger fun
 
 // StartWebServer starts the web server
 func (webserver *WebServer) StartWebServer(errChannel chan error) {
+	fmt.Println("START WEB SERVER 1a")
 	go func() {
+		fmt.Println("xxxSTART WEB SERVER 2a")
 		if serviceTimeout, err := time.ParseDuration(webserver.config.Service.RequestTimeout); err != nil {
+			fmt.Println("xxxSTART WEB SERVER 3a")
 			errChannel <- fmt.Errorf("failed to parse Service.RequestTimeout: %v", err)
+			fmt.Println("xxxSTART WEB SERVER 3b")
 		} else {
+			fmt.Println("xxxSTART WEB SERVER 4a")
 			webserver.listenAndServe(serviceTimeout, errChannel)
+			fmt.Println("xxxSTART WEB SERVER 4b")
 		}
+		fmt.Println("xxxSTART WEB SERVER 2b")
 	}()
+	fmt.Println("START WEB SERVER 1b")
 }
 
 // Helper function to handle HTTPs or HTTP connection based on the configured protocol
 func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChannel chan error) {
+	fmt.Println("xxx listenAndServe 1a")
+	defer fmt.Println("xxx listenAndServe exited?")
 	config := webserver.config
 	lc := webserver.lc
 
@@ -125,6 +135,7 @@ func (webserver *WebServer) listenAndServe(serviceTimeout time.Duration, errChan
 	if len(config.Service.ServerBindAddr) != 0 {
 		bindAddress = config.Service.ServerBindAddr
 	}
+	fmt.Println("xxx listenAndServe 2")
 	addr := fmt.Sprintf("%s:%d", bindAddress, config.Service.Port)
 
 	fmt.Println("dddddddd")
