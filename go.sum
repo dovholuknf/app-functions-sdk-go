@@ -86,10 +86,10 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/diegoholiveira/jsonlogic/v3 v3.5.3 h1:CPyZQ3fOgiIDZ1yWzPGUpyht5tYTOnRoN913c0mkXZw=
 github.com/diegoholiveira/jsonlogic/v3 v3.5.3/go.mod h1:3nnfWovrlZq2rTpucrJ2KMIS8TMf6IoFneofmeqk/qk=
+github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240719180122-97c856a723b9 h1:4scIXEjtNUaBpaQ9Tu5gG+ROWPUFLDb+8uFGa3oxqrE=
+github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240719180122-97c856a723b9/go.mod h1:p93jzzvKXQkVe0KdBMFd/By0H4BZwZ9IQ7cStBOjR/k=
 github.com/eclipse/paho.mqtt.golang v1.4.3 h1:2kwcUGn8seMUfWndX0hGbvH8r7crgcJguQNCyp70xik=
 github.com/eclipse/paho.mqtt.golang v1.4.3/go.mod h1:CSYvoAlsMkhYOXh/oKyxa8EcBci6dVkLCbo5tTC1RIE=
-github.com/edgexfoundry/go-mod-bootstrap/v3 v3.2.0-dev.45 h1:Lb7VRZoxQMhvK/uZNAbwZHwDq7Jikw9AgKtjYou94+0=
-github.com/edgexfoundry/go-mod-bootstrap/v3 v3.2.0-dev.45/go.mod h1:p93jzzvKXQkVe0KdBMFd/By0H4BZwZ9IQ7cStBOjR/k=
 github.com/edgexfoundry/go-mod-configuration/v3 v3.2.0-dev.9 h1:CTqf1S7vT2ciwhryWvNFfSqiElfJ98XG/p0uzjdJxWM=
 github.com/edgexfoundry/go-mod-configuration/v3 v3.2.0-dev.9/go.mod h1:t3LhBR4JUZQprOYjfy8wQaML1nXl7Ou1cXMRFlx5Bi8=
 github.com/edgexfoundry/go-mod-core-contracts/v3 v3.2.0-dev.30 h1:85GeokwX7dRl5egWGWvoLuAkUc8O4AmYVm8suKh0wqI=

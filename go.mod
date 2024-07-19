@@ -141,3 +141,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.11 // indirect
 )
+
+replace github.com/edgexfoundry/go-mod-bootstrap/v3 => github.com/dovholuknf/go-mod-bootstrap/v3 v3.0.0-20240719180122-97c856a723b9
